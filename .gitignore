@@ -1,1 +1,9 @@
 .idea
+*~
+_*
+*.o
+*.d
+*.asm
+*.sym
+*.img
+.gdbinit

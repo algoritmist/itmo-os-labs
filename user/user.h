@@ -42,4 +42,4 @@ void *memcpy(void *, const void *, uint);
 
 // custom dumps
 void dump();
-void dump2(int pid, int register_num, uint64 *return_value);
+int dump2(int pid, int register_num, uint64* return_value);

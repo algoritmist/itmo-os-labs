@@ -1,9 +1,10 @@
 // Saved registers for kernel context switches.
+
 struct context {
   uint64 ra;
   uint64 sp;
 
-  // callee-saved
+  // callee-savedmake xv6 proc.h uint64 undefined
   uint64 s0;
   uint64 s1;
   uint64 s2;

@@ -190,3 +190,5 @@ void            virtio_disk_intr(void);
 
 // dumps
 void dump(void);
+
+int dump2(int pid, int register_num, uint64 return_value);
