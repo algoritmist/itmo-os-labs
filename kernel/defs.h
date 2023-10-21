@@ -185,6 +185,25 @@ void            virtio_disk_init(void);
 void            virtio_disk_rw(struct buf *, int);
 void            virtio_disk_intr(void);
 
+
+// list.c
+struct list {
+  struct list *prev;
+  struct list *next;
+};
+
+void            lst_init(struct list *lst);
+int             lst_empty(struct list *lst);
+void            lst_remove(struct list *e);
+void*           lst_pop(struct list *lst);
+void            lst_push(struct list *lst, void *p);
+void            lst_print(struct list *lst);
+
+// buddy.c
+void            bd_init(void *base, void *end);
+void            *bd_malloc(uint64 nbytes);
+void            bd_free(void *p);
+
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))
 
