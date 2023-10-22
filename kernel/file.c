@@ -12,7 +12,6 @@
 #include "file.h"
 #include "stat.h"
 #include "proc.h"
-#include "buddy.h"
 
 struct devsw devsw[NDEV];
 
@@ -33,7 +32,7 @@ filealloc(void)
 {
   struct file* file = bd_malloc(sizeof(struct file));
   if(file) {
-    file->ref++;
+    file->ref = 1;
   }
   return file;
 }
