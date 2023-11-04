@@ -40,3 +40,4 @@ entry("uptime");
 # dumps
 entry("dump");
 entry("dump2");
+entry("procdump");

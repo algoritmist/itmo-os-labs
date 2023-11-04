@@ -619,7 +619,6 @@ void procdump(void)
       state = "???";
     printf("%d %s %s", p->pid, state, p->name);
     printf("\n");
-    p = p->next;
     proc_count++;
   }
   printf("Total procs: %d\n", proc_count);

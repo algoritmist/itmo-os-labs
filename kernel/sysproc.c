@@ -92,3 +92,8 @@ uint64 sys_dump2(void)
   argaddr(2, &return_value);
   return dump2(pid, register_num, return_value);
 }
+
+uint64 sys_procdump(void){
+  procdump();
+  return 0;
+}
