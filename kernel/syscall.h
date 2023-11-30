@@ -23,3 +23,4 @@
 #define SYS_dump   22
 #define SYS_dump2  23
 #define SYS_procdump 24
+#define SYS_buddy_debug_set 25

@@ -7,6 +7,15 @@
 
 // Buddy allocator
 
+int buddy_debug_enabled = 0;
+struct spinlock buddy_debug_lock;
+
+void buddy_debug_set(int enabled){
+  acquire(&buddy_debug_lock);
+  buddy_debug_enabled = enabled;
+  release(&buddy_debug_lock);
+}
+
 static int nsizes; // the number of entries in bd_sizes array
 
 #define LEAF_SIZE 16                          // The smallest block size
@@ -88,6 +97,49 @@ void bd_print_vector(char *vector, int len)
 }
 
 // Print buddy's data structures
+void bd_print_before(int k){
+  if(!buddy_debug_enabled){
+    return;
+  }
+  acquire(&buddy_debug_lock);
+  printf("Buddy structures before:\n");
+  printf("size %d (blksz %d nblk %d): free list: ", k, BLK_SIZE(k), NBLK(k));
+  lst_print(&bd_sizes[k].free);
+  printf("  alloc:");
+  bd_print_vector(bd_sizes[k].alloc, NBLK(k) / 2);
+  if (k > 0) {
+    printf("  split:");
+    bd_print_vector(bd_sizes[k].split, NBLK(k));
+  }
+  release(&buddy_debug_lock);
+}
+
+void bd_print_after(int k){
+  if(!buddy_debug_enabled){
+    return;
+  }
+  acquire(&buddy_debug_lock);
+  printf("Buddy structures after:\n");
+  printf("size %d (blksz %d nblk %d): free list: ", k, BLK_SIZE(k), NBLK(k));
+  lst_print(&bd_sizes[k].free);
+  printf("  alloc:");
+  bd_print_vector(bd_sizes[k].alloc, NBLK(k) / 2);
+  if (k > 0) {
+    printf("  split:");
+    bd_print_vector(bd_sizes[k].split, NBLK(k));
+  }
+  release(&buddy_debug_lock);
+}
+
+void bd_print_debug(char* str){
+  if(!buddy_debug_enabled){
+    return;
+  }
+  acquire(&buddy_debug_lock);
+  printf("%s\n", str);
+  release(&buddy_debug_lock);
+}
+
 void bd_print()
 {
   for (int k = 0; k < nsizes; k++) {
@@ -133,9 +185,8 @@ void *addr(int k, int bi)
 void *bd_malloc(uint64 nbytes)
 {
   int fk, k;
-
   acquire(&lock);
-
+  bd_print_debug("bd_malloc:\n");
   // Find a free block >= nbytes, starting with smallest k possible
   fk = firstk(nbytes);
   for (k = fk; k < nsizes; k++) {
@@ -154,12 +205,15 @@ void *bd_malloc(uint64 nbytes)
     // split a block at size k and mark one half allocated at size k-1
     // and put the buddy on the free list at size k-1
     char *q = p + BLK_SIZE(k - 1); // p's buddy
+    bd_print_before(k);
     bit_set(bd_sizes[k].split, blk_index(k, p));
+    bd_print_after(k);
+    bd_print_before(k - 1);
     bit_invert(bd_sizes[k - 1].alloc, blk_index(k - 1, p) / 2);
     lst_push(&bd_sizes[k - 1].free, q);
+    bd_print_after(k - 1);
   }
   release(&lock);
-
   return p;
 }
 
@@ -182,12 +236,15 @@ void bd_free(void *p)
   int k;
 
   acquire(&lock);
+  bd_print_debug("bd_free:\n");
   for (k = size(p); k < MAXSIZE; k++) {
     int bi = blk_index(k, p);
     int buddy = (bi % 2 == 0) ? bi + 1 : bi - 1;
-    bit_invert(bd_sizes[k].alloc, bi / 2);         // free p at size k
+    bd_print_before(k);
+    bit_invert(bd_sizes[k].alloc, bi / 2);      // free p at size k
+    bd_print_after(k);
     if (bit_isset(bd_sizes[k].alloc, bi / 2)) { // is buddy allocated?
-      break;                                   // break out of loop
+      break;                                    // break out of loop
     }
     // budy is free; merge with buddy
     q = addr(k, buddy);
@@ -198,8 +255,10 @@ void bd_free(void *p)
     // at size k+1, mark that the merged buddy pair isn't split
     // anymore
     bit_clear(bd_sizes[k + 1].split, blk_index(k + 1, p));
+    bd_print_after(k + 1);
   }
   lst_push(&bd_sizes[k].free, p);
+  bd_print_after(k);
   release(&lock);
 }
 
@@ -322,6 +381,7 @@ void bd_init(void *base, void *end)
   int sz;
 
   initlock(&lock, "buddy");
+  initlock(&buddy_debug_lock, "buddy-debuger");
   bd_base = (void *)p;
 
   // compute the number of sizes we need to manage [base, end)

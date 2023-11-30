@@ -41,3 +41,4 @@ entry("uptime");
 entry("dump");
 entry("dump2");
 entry("procdump");
+entry("buddy_debug_set");

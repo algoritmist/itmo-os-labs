@@ -97,3 +97,10 @@ uint64 sys_procdump(void){
   procdump();
   return 0;
 }
+
+uint64 sys_buddy_debug_set(void){
+  int enabled;
+  argint(0, &enabled);
+  buddy_debug_set(enabled);
+  return 0;
+}

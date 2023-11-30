@@ -46,4 +46,5 @@ int dump2(int pid, int register_num, uint64* return_value);
 
 // proc.c
 int procdump(void);
+void buddy_debug_set(int enabled);
 
